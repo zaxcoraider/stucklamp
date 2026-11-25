@@ -1,0 +1,10 @@
+node_modules
+dist
+.env
+.env.*
+*.ehpk
+data.json
+
+!.env.example
+!.env.gateway.example
+.DS_Store
