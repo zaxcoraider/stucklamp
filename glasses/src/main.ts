@@ -159,7 +159,10 @@ function wirePage() {
 // ---------- boot ----------
 async function boot() {
   api = await connect();
-  bridge = await Promise.race([
+  // Only talk to glasses inside the Even app / simulator (they inject this handler).
+  // In a normal browser the SDK still resolves, so check for the host ourselves.
+  const inEvenApp = !!(window as unknown as { flutter_inappwebview?: unknown }).flutter_inappwebview;
+  bridge = !inEvenApp ? null : await Promise.race([
     waitForEvenAppBridge(),
     new Promise<null>((r) => setTimeout(() => r(null), 2000)),
   ]);
