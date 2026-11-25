@@ -161,7 +161,10 @@ async function boot() {
   api = await connect();
   // Only talk to glasses inside the Even app / simulator (they inject this handler).
   // In a normal browser the SDK still resolves, so check for the host ourselves.
-  const inEvenApp = !!(window as unknown as { flutter_inappwebview?: unknown }).flutter_inappwebview;
+  // The host may inject it shortly after load, so wait up to 2 s.
+  const hasHost = () => !!(window as unknown as { flutter_inappwebview?: { callHandler?: unknown } }).flutter_inappwebview?.callHandler;
+  for (let i = 0; i < 20 && !hasHost(); i++) await new Promise((r) => setTimeout(r, 100));
+  const inEvenApp = hasHost();
   bridge = !inEvenApp ? null : await Promise.race([
     waitForEvenAppBridge(),
     new Promise<null>((r) => setTimeout(() => r(null), 2000)),
