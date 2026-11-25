@@ -18,7 +18,9 @@ export interface Ticket {
   hint?: string;       // Claude's nudge sent to the student while waiting
   selfSolved?: boolean; // student fixed it with the hint before a mentor came
   claimedBy?: string;  // which mentor's glasses tapped "on my way"
-  // Discord routing (never sent to the glasses)
+  // Routing back to the student (never sent to the glasses)
+  platform?: 'discord' | 'telegram' | 'web';
+  tg?: { chat: number; user: number; msg: number };
   userId: string;
   channelId: string;
 }

@@ -4,6 +4,7 @@ import { claudeInfo, claudeOn, cluster, triage } from './claude.ts';
 import { postToClass, sendHint, startDiscord, tell } from './discord.ts';
 import { newId, publicView, room, save, waitingOf, type Ticket } from './store.ts';
 import { transcribe, voiceOn } from './voice.ts';
+import { startTelegram, telegramOn, tgHint, tgPostFix, tgTell } from './telegram.ts';
 
 const PORT = Number(process.env.PORT ?? 8787);
 const MIN_CLUSTER = Number(process.env.MIN_CLUSTER ?? 2);
@@ -39,7 +40,7 @@ function scheduleCluster(roomId: string) {
 async function onNewTicket(roomId: string, t: Ticket) {
   const { short, hint } = await triage(t.rawProblem);
   t.problem = short;
-  if (hint && t.status === 'waiting') { t.hint = hint; void sendHint(t); }
+  if (hint && t.status === 'waiting') { t.hint = hint; void (t.platform === 'telegram' ? tgHint(t) : sendHint(t)); }
   save();
   if (claudeOn) scheduleCluster(roomId);
 }
@@ -49,7 +50,7 @@ async function claim(roomId: string, id: string, mentor?: string) {
   const t = room(roomId).tickets.find((x) => x.id === id);
   if (!t || t.status !== 'waiting') return false; // another mentor got there first
   t.status = 'going'; t.helpedAt = Date.now(); t.claimedBy = mentor?.slice(0, 24); save();
-  void tell(t, '🏃 **A mentor is on the way to you now.**');
+  void (t.platform === 'telegram' ? tgTell(t, '🏃 **A mentor is on the way to you now.**') : tell(t, '🏃 **A mentor is on the way to you now.**'));
   return true;
 }
 
@@ -76,8 +77,15 @@ async function postFix(roomId: string, cid: string) {
   const ts = c.ticketIds.map((id) => r.tickets.find((t) => t.id === id)).filter((t): t is Ticket => !!t && t.status === 'waiting');
   r.clusters = r.clusters.filter((x) => x.id !== cid);
   if (ts.length) {
-    const mentions = ts.map((t) => (t.userId ? `<@${t.userId}>` : t.name)).join(' ');
-    await postToClass(ts.find((t) => t.channelId)?.channelId ?? '', `💡 ${mentions}: ${ts.length} of you hit the same problem (**${c.label}**).\n${c.fix}\nStill stuck after trying this? Use \`/stuck\` again and a mentor will come over.`);
+    // Post once per class chat: Discord students in their channel, Telegram students in their group.
+    const discord = ts.filter((t) => t.platform !== 'telegram');
+    if (discord.length) {
+      const mentions = discord.map((t) => (t.userId ? `<@${t.userId}>` : t.name)).join(' ');
+      await postToClass(discord.find((t) => t.channelId)?.channelId ?? '', `💡 ${mentions}: ${discord.length} of you hit the same problem (**${c.label}**).\n${c.fix}\nStill stuck after trying this? Use \`/stuck\` again and a mentor will come over.`);
+    }
+    const byChat = new Map<number, Ticket[]>();
+    for (const t of ts) if (t.tg) byChat.set(t.tg.chat, [...(byChat.get(t.tg.chat) ?? []), t]);
+    for (const [chat, group] of byChat) await tgPostFix(chat, group, c.label, c.fix).catch((e) => console.error('[telegram] fix', e.message));
     const now = Date.now();
     for (const t of ts) { t.status = 'done'; t.helpedAt ??= now; t.doneAt = now; t.viaFix = cid; }
   }
@@ -163,4 +171,10 @@ if (process.env.DISCORD_TOKEN && process.env.DISCORD_APP_ID) {
   startDiscord({ onNewTicket: (r, t) => void onNewTicket(r, t), onSelfSolved: (r, id) => selfSolve(r, id) }).catch((e) => console.error('[discord] login failed:', e.message));
 } else {
   console.warn('[discord] off: DISCORD_TOKEN / DISCORD_APP_ID missing in .env');
+}
+
+if (telegramOn) {
+  startTelegram({ onNewTicket: (r, t) => void onNewTicket(r, t), onSelfSolved: (r, id) => selfSolve(r, id) }).catch((e) => console.error('[telegram] failed:', e.message));
+} else {
+  console.warn('[telegram] off: TELEGRAM_BOT_TOKEN missing in .env');
 }
