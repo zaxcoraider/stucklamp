@@ -1,3 +1,4 @@
+import './style.css';
 import {
   CreateStartUpPageContainer,
   OsEventTypeList,
@@ -10,6 +11,7 @@ import {
   type EvenHubEvent,
 } from '@evenrealities/even_hub_sdk';
 import { addTicket, connect, resetRoom, ROOM, type Api } from './api';
+import { initPage, paintRoom } from './page';
 import { clusterCard, emptyCard, flash, goingCard, queueCard, waiting } from './screens';
 import type { QueueState } from './types';
 
@@ -61,7 +63,7 @@ function screen(): string {
   return queueCard(q, list[cursor], cursor, list.length, now);
 }
 
-function render() { void show(screen()); }
+function render() { void show(screen()); paintRoom(q, goingId); }
 
 function say(msg: string, ms = 1500) {
   flashText = flash(msg);
@@ -131,29 +133,10 @@ window.addEventListener('keydown', (e) => {
 function wirePage() {
   document.querySelectorAll<HTMLButtonElement>('[data-in]').forEach((b) =>
     b.addEventListener('click', () => void handle(b.dataset.in as Input)));
-
-  const form = document.getElementById('stuck-form') as HTMLFormElement | null;
-  const msg = document.getElementById('student-msg');
-  if (!form || !msg) return;
-  document.querySelectorAll<HTMLButtonElement>('.chips button').forEach((b) => b.addEventListener('click', () => {
-    (form.elements.namedItem('name') as HTMLInputElement).value = b.dataset.n ?? '';
-    (form.elements.namedItem('seat') as HTMLInputElement).value = b.dataset.s ?? '';
-    (form.elements.namedItem('problem') as HTMLTextAreaElement).value = b.dataset.p ?? '';
-  }));
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const f = new FormData(form);
-    msg.className = 'msg'; msg.textContent = 'Sending…';
-    if (api.mode === 'demo') { msg.className = 'msg err'; msg.textContent = 'Server offline: showing the built-in demo class instead.'; return; }
-    try {
-      const r = await addTicket(String(f.get('name')), String(f.get('seat') || '?'), String(f.get('problem')));
-      if (r.ok) { msg.textContent = `🙋 Got it, you're #${r.position} in line. Watch the glasses →`; form.reset(); void refresh(); }
-      else { msg.className = 'msg err'; msg.textContent = r.error ?? 'Could not add you.'; }
-    } catch { msg.className = 'msg err'; msg.textContent = 'Network error.'; }
-  });
   document.getElementById('reset')?.addEventListener('click', async () => {
     await resetRoom(); goingId = null; parkedGoing.clear(); skippedClusters.clear(); cursor = 0; void refresh();
   });
+  initPage({ mode: api.mode, add: addTicket, refresh: () => void refresh() });
 }
 
 // ---------- boot ----------
@@ -164,7 +147,7 @@ async function boot() {
   // The host may inject it shortly after load, so wait up to 2 s.
   const hasHost = () => !!(window as unknown as { flutter_inappwebview?: { callHandler?: unknown } }).flutter_inappwebview?.callHandler;
   for (let i = 0; i < 20 && !hasHost(); i++) await new Promise((r) => setTimeout(r, 100));
-  const inEvenApp = hasHost();
+  const inEvenApp = hasHost() && !new URLSearchParams(location.search).has('web'); // ?web = force website view
   bridge = !inEvenApp ? null : await Promise.race([
     waitForEvenAppBridge(),
     new Promise<null>((r) => setTimeout(() => r(null), 2000)),

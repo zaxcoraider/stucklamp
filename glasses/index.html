@@ -3,55 +3,128 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Stucklamp · try it</title>
-    <meta name="description" content="Help queue for teachers and mentors on Even Realities G2 glasses." />
-    <link rel="icon" href="/favicon.svg" />
-    <link rel="stylesheet" href="/src/style.css" />
+    <title>Stucklamp · see who's stuck without looking down</title>
+    <meta name="description" content="A help queue for teachers and mentors on Even Realities G2 glasses. Students type /stuck in Discord; the glasses show who to help next." />
+    <meta property="og:title" content="Stucklamp" />
+    <meta property="og:description" content="See who's stuck without looking down. A help queue for teachers on Even Realities G2." />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   </head>
   <body>
-    <header class="top">
-      <div class="brand"><span class="lamp" aria-hidden="true"></span>Stucklamp</div>
-      <p class="tag">A help queue for teachers and mentors, on Even Realities G2 glasses.</p>
+    <a class="skip" href="#demo">Skip to the live demo</a>
+    <header class="nav">
+      <a class="wordmark" href="/" aria-label="Stucklamp home">
+        <img src="/logo.svg" alt="" width="34" height="34" />
+        <span>stucklamp</span>
+      </a>
+      <nav aria-label="Page">
+        <a href="#how">How it works</a>
+        <a href="#research">Research</a>
+        <a href="#privacy">Privacy</a>
+      </nav>
     </header>
 
-    <main class="stage">
-      <section class="panel student" aria-labelledby="student-h">
-        <h2 id="student-h"><span class="step">1</span>Be a stuck student</h2>
-        <p class="hint">In class, students type <code>/stuck</code> in Discord. Here you can use this form instead.</p>
-        <div class="chips" role="group" aria-label="Example problems">
-          <button type="button" data-p="pip install flask says externally-managed-environment" data-s="14" data-n="Maya">pip error</button>
-          <button type="button" data-p="ModuleNotFoundError: No module named flask when I run python app.py" data-s="3" data-n="Omar">same problem, other words</button>
-          <button type="button" data-p="my CSS grid items will not center" data-s="22" data-n="Lena">CSS problem</button>
+    <main>
+      <section class="hero" aria-labelledby="hero-h">
+        <div class="hero-copy">
+          <h1 id="hero-h">See who's stuck without looking down.</h1>
+          <p class="lede">
+            Students type <code>/stuck</code> in your class Discord. Your G2 glasses show who has waited longest.
+            One tap tells them you're on the way, and when five people hit the same error, one tap sends the fix to all five.
+          </p>
         </div>
-        <form id="stuck-form">
-          <label>Name <input name="name" maxlength="24" placeholder="Maya" required /></label>
-          <label>Seat <input name="seat" maxlength="12" placeholder="14" /></label>
-          <label class="wide">What's wrong? <textarea name="problem" maxlength="300" rows="3" placeholder="pip install says externally-managed-environment" required></textarea></label>
-          <button type="submit" class="primary">/stuck</button>
-        </form>
-        <p id="student-msg" class="msg" role="status" aria-live="polite"></p>
-        <p class="hint small">Try two students with the same problem in different words, and Claude groups them in a few seconds.</p>
+
+        <div class="demo" id="demo" aria-label="Live demo">
+          <figure class="room">
+            <figcaption>
+              <strong>Your classroom.</strong> Click a desk to make that student stuck.
+            </figcaption>
+            <div class="board" aria-hidden="true">front of the room</div>
+            <div class="desks" id="desks" role="group" aria-label="Desks, seats 1 to 24"></div>
+            <form class="own" id="own-form">
+              <label for="own-problem">Or write your own problem for seat <span id="own-seat-label">12</span></label>
+              <div class="own-row">
+                <input id="own-problem" name="problem" maxlength="300" placeholder="git push rejected after merge" autocomplete="off" required />
+                <button type="submit">Raise hand</button>
+              </div>
+            </form>
+            <p id="student-msg" class="msg" role="status" aria-live="polite"></p>
+          </figure>
+
+          <div class="wearer">
+            <div class="lens-frame">
+              <pre id="lens" aria-live="polite" aria-label="What the G2 glasses show"></pre>
+            </div>
+            <div class="controls" role="group" aria-label="Glasses touchpad">
+              <button type="button" data-in="prev" aria-label="Swipe up">Swipe up</button>
+              <button type="button" data-in="tap" class="tap">Tap</button>
+              <button type="button" data-in="next" aria-label="Swipe down">Swipe down</button>
+              <button type="button" data-in="double">Double-tap</button>
+            </div>
+            <p class="fine">
+              What the mentor sees on G2. On real glasses these are the temple touchpad or the R1 ring.
+              Keyboard works too: Enter, arrow keys, Space.
+            </p>
+            <p class="fine"><span id="mode">Connecting…</span> <button type="button" id="reset" class="textbtn">Clear the room</button></p>
+          </div>
+        </div>
       </section>
 
-      <section class="panel mentor" aria-labelledby="mentor-h">
-        <h2 id="mentor-h"><span class="step">2</span>Be the mentor wearing G2</h2>
-        <div class="glasses">
-          <pre id="lens" aria-live="polite" aria-label="Glasses display, 576 by 288"></pre>
+      <section class="how" id="how" aria-labelledby="how-h">
+        <h2 id="how-h">How a class runs</h2>
+        <ol class="steps">
+          <li>
+            <h3>A student asks</h3>
+            <p><code>/stuck problem: pip install fails seat: 14</code> in Discord. They see "you're #3 in line" and keep trying.</p>
+          </li>
+          <li>
+            <h3>The glasses show one name</h3>
+            <p>Longest wait first: seat, name and the problem in a few words. Claude shortens long messages so they fit.</p>
+          </li>
+          <li>
+            <h3>One tap, and they know</h3>
+            <p>"A mentor is on the way" arrives privately in Discord. Tap again when you're done.</p>
+          </li>
+          <li>
+            <h3>Same problem, one fix</h3>
+            <p>When several students hit the same wall, Claude groups them. One tap posts a single fix to the class, with each of them tagged.</p>
+          </li>
+        </ol>
+        <p class="after">At the end, <code>/recap</code> shows how many you helped, the average wait, and who never got help.</p>
+      </section>
+
+      <section class="research" id="research" aria-labelledby="research-h">
+        <h2 id="research-h">This has been tested before, on much heavier glasses</h2>
+        <blockquote>
+          <p>In 2018, Carnegie Mellon researchers gave teachers mixed-reality glasses that showed which students were struggling. Teachers spent their time where it mattered, and students learned more.</p>
+          <footer>Holstein, McLaren &amp; Aleven, <cite>Student learning benefits of a mixed-reality teacher awareness tool in AI-enhanced classrooms</cite>, AIED 2018.</footer>
+        </blockquote>
+        <p class="followup">Their prototype ran on a HoloLens headset, which no one wears for a whole school day. G2 looks like ordinary glasses, and your class already has Discord open.</p>
+      </section>
+
+      <section class="split" aria-label="Who it's for and privacy">
+        <div>
+          <h2>Made for rooms full of laptops</h2>
+          <ul class="plain">
+            <li>Coding and design teachers with 10 to 40 students</li>
+            <li>University teaching assistants in lab sessions</li>
+            <li>Bootcamp and hackathon mentors</li>
+          </ul>
         </div>
-        <div class="controls" role="group" aria-label="Glasses controls">
-          <button type="button" data-in="prev">▲ Swipe</button>
-          <button type="button" data-in="tap" class="primary">Tap</button>
-          <button type="button" data-in="next">▼ Swipe</button>
-          <button type="button" data-in="double">Double-tap</button>
+        <div id="privacy">
+          <h2>Careful with students</h2>
+          <ul class="plain">
+            <li>Only a display name, a seat and the problem. No message history.</li>
+            <li>Nothing goes to the class until the mentor taps.</li>
+            <li>"On the way" is a private reply only that student sees.</li>
+            <li>It shows students who asked for help. It doesn't watch anyone.</li>
+          </ul>
         </div>
-        <p class="hint small">Keyboard: Enter = tap · ↑/↓ = swipe · Space = double-tap. On real G2 this is the touchpad or the R1 ring.</p>
-        <p class="hint small"><span id="mode"></span> · <button type="button" id="reset" class="link">reset this demo</button></p>
       </section>
     </main>
 
     <footer class="foot">
-      Heads Up Hackathon 2026 · Track 01 (Discord) + Claude ·
-      Inspired by Carnegie Mellon's Lumilo research: teacher glasses that show who is stuck helped students learn more.
+      <img src="/logo.svg" alt="" width="22" height="22" />
+      <p>Stucklamp was built for the Heads Up Hackathon 2026 on Even Realities G2, with Discord and Claude.</p>
     </footer>
     <script type="module" src="/src/main.ts"></script>
   </body>

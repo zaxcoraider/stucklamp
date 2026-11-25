@@ -1,49 +1,143 @@
+@import '@fontsource/atkinson-hyperlegible-next/400.css';
+@import '@fontsource/atkinson-hyperlegible-next/700.css';
+@import '@fontsource/familjen-grotesk/600.css';
+@import '@fontsource/familjen-grotesk/700.css';
+
+/* Exercise-book paper, navy ink, lamp light. Green lives only inside the G2 lens. */
 :root {
-  --bg: #0d0f0e; --panel: #151918; --line: #26302c; --text: #e7ece9; --muted: #95a39c;
-  --green: #4dff6a; --green-dim: #2b8f3c; --accent: #ffd34d;
-  color-scheme: dark;
+  --paper: #f6f8f4;
+  --ink: #1b2238;
+  --ink-soft: #4a5470;
+  --rule: #d3deee;
+  --margin: #d9483b;
+  --lamp: #f2b33d;
+  --lamp-soft: #fbe6b4;
+  --lens: #030604;
+  --lens-text: #5cff7a;
+  --display: 'Familjen Grotesk', 'Avenir Next', sans-serif;
+  --body: 'Atkinson Hyperlegible Next', 'Atkinson Hyperlegible', system-ui, sans-serif;
+  --line: 1.6rem;
+  color-scheme: light;
 }
+
 * { box-sizing: border-box; }
-body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 system-ui, -apple-system, Segoe UI, sans-serif; }
-code { font-family: ui-monospace, Menlo, monospace; color: var(--green); }
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } * { transition: none !important; animation: none !important; } }
+
+body {
+  margin: 0;
+  color: var(--ink);
+  font: 17px/var(--line) var(--body);
+  background-color: var(--paper);
+  /* ruled lines + the red margin of a school notebook */
+  background-image:
+    linear-gradient(to right, transparent 54px, var(--margin) 54px, var(--margin) 55px, transparent 55px),
+    repeating-linear-gradient(to bottom, transparent 0, transparent calc(var(--line) - 1px), var(--rule) calc(var(--line) - 1px), var(--rule) var(--line));
+  background-attachment: local;
+}
+@media (max-width: 720px) { body { background-image: repeating-linear-gradient(to bottom, transparent 0, transparent calc(var(--line) - 1px), var(--rule) calc(var(--line) - 1px), var(--rule) var(--line)); } }
+
+a { color: var(--ink); }
+code { font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: .88em; background: #fff; border: 1px solid var(--rule); border-radius: 4px; padding: 0 .3em; }
 button { font: inherit; cursor: pointer; }
-button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+:focus-visible { outline: 3px solid var(--lamp); outline-offset: 2px; }
+.skip { position: absolute; left: -999px; }
+.skip:focus { left: 16px; top: 12px; background: var(--ink); color: var(--paper); padding: 6px 12px; border-radius: 6px; z-index: 10; }
 
-.top { max-width: 1120px; margin: 0 auto; padding: 28px 20px 8px; }
-.brand { font-weight: 700; font-size: 22px; display: flex; align-items: center; gap: 10px; letter-spacing: .2px; }
-.lamp { width: 14px; height: 14px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 14px 3px rgba(255, 211, 77, .55); }
-.tag { margin: 4px 0 0; color: var(--muted); }
+/* ---------- nav ---------- */
+.nav { max-width: 1180px; margin: 0 auto; padding: 22px 24px 0 80px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.wordmark { display: flex; align-items: center; gap: 10px; text-decoration: none; font: 700 25px/1 var(--display); letter-spacing: -.02em; }
+.nav nav { display: flex; gap: 22px; }
+.nav nav a { text-decoration: none; color: var(--ink-soft); font-size: 15px; }
+.nav nav a:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 4px; }
+@media (max-width: 720px) { .nav { padding-left: 20px; } .nav nav { display: none; } }
 
-.stage { max-width: 1120px; margin: 0 auto; padding: 16px 20px; display: grid; grid-template-columns: minmax(300px, 1fr) minmax(320px, 640px); gap: 20px; align-items: start; }
-@media (max-width: 920px) { .stage { grid-template-columns: 1fr; } }
-.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 18px; }
-h2 { margin: 0 0 6px; font-size: 16px; display: flex; align-items: center; gap: 8px; }
-.step { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--line); font-size: 12px; }
-.hint { color: var(--muted); margin: 6px 0 12px; }
-.small { font-size: 13px; margin: 8px 0 0; }
+/* ---------- hero ---------- */
+main { max-width: 1180px; margin: 0 auto; padding: 0 24px 0 80px; }
+@media (max-width: 720px) { main { padding: 0 16px; } }
+.hero { padding-top: calc(var(--line) * 3); }
+h1 { font: 700 clamp(2.6rem, 6.2vw, 4.9rem)/1.02 var(--display); letter-spacing: -.035em; margin: 0; max-width: 14ch; }
+.lede { font-size: 1.18rem; line-height: 1.7rem; color: var(--ink-soft); max-width: 58ch; margin: var(--line) 0 0; }
 
-.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
-.chips button { background: transparent; color: var(--text); border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; font-size: 13px; }
-.chips button:hover { border-color: var(--green-dim); }
+.demo { margin-top: calc(var(--line) * 2.5); display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 28px; align-items: start; }
+@media (max-width: 980px) { .demo { grid-template-columns: 1fr; } }
 
-form { display: grid; grid-template-columns: 1fr 90px; gap: 10px; }
-label { display: grid; gap: 4px; font-size: 13px; color: var(--muted); }
-label.wide { grid-column: 1 / -1; }
-input, textarea { width: 100%; min-width: 0; background: #0b0d0c; color: var(--text); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; font: inherit; resize: vertical; }
-.primary { background: var(--green); color: #06210c; border: 0; border-radius: 8px; padding: 9px 16px; font-weight: 700; }
-form .primary { grid-column: 1 / -1; justify-self: start; font-family: ui-monospace, Menlo, monospace; }
-.msg { min-height: 1.5em; margin: 10px 0 0; color: var(--green); }
-.msg.err { color: #ff8a7a; }
+/* the classroom, seen from above */
+.room { margin: 0; background: #fff; border: 1.5px solid var(--ink); border-radius: 18px; padding: 20px 22px 18px; box-shadow: 6px 6px 0 var(--ink); }
+.room figcaption { color: var(--ink-soft); font-size: 15px; }
+.room figcaption strong { color: var(--ink); }
+.board { margin: 14px auto 18px; width: 62%; text-align: center; font-size: 12px; letter-spacing: .04em; color: #fff; background: var(--ink); border-radius: 4px; padding: 3px 0; }
+.desks { display: grid; grid-template-columns: repeat(3, 1fr) 18px repeat(3, 1fr); gap: 12px 10px; }
+.desk {
+  position: relative; aspect-ratio: 1.45 / 1; border: 1.5px solid var(--ink); border-radius: 7px; background: var(--paper);
+  display: grid; place-items: center; padding: 2px; color: var(--ink-soft); font-size: 12px; line-height: 1.1;
+  transition: background-color .25s, box-shadow .25s, border-color .25s;
+}
+.desk:hover { background: var(--lamp-soft); }
+.desk .who { font-weight: 700; color: var(--ink); font-size: 12.5px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.desk .num { position: absolute; top: 3px; left: 6px; font-size: 10px; color: var(--ink-soft); }
+.desk::after { /* the chair */ content: ''; position: absolute; bottom: -7px; left: 50%; width: 30%; height: 4px; transform: translateX(-50%); border-radius: 2px; background: var(--rule); }
+.desk[data-state='waiting'] { background: var(--lamp); border-color: var(--ink); box-shadow: 0 0 0 5px rgba(242, 179, 61, .28), 0 0 26px 6px rgba(242, 179, 61, .55); }
+.desk[data-state='waiting'][data-long='1'] { box-shadow: 0 0 0 3px var(--margin), 0 0 26px 6px rgba(242, 179, 61, .55); }
+.desk[data-state='going'] { background: #fff; border: 2px dashed var(--ink); }
+.desk[data-state='going'] .who::before { content: 'on the way · '; font-weight: 400; color: var(--ink-soft); }
+.desk[data-state='helped'] { background: #e7f2e3; }
+.desk[data-state='helped'] .who::after { content: ' ✓'; }
 
-.glasses { background: #000; border-radius: 18px; padding: 10px; border: 1px solid #1c2420; overflow-x: auto; }
-#lens { width: 576px; height: 288px; margin: 0 auto; padding: 10px 14px; color: var(--green); background: #000;
-  font: 19px/1.36 ui-monospace, Menlo, monospace; white-space: pre-wrap; overflow: hidden; text-shadow: 0 0 6px rgba(77, 255, 106, .35); }
-.controls { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
-.controls button { flex: 1 1 110px; background: #0b0d0c; color: var(--text); border: 1px solid var(--line); border-radius: 8px; padding: 10px; }
-.controls button.primary { background: var(--green); color: #06210c; border: 0; }
-.link { background: none; border: 0; color: var(--muted); text-decoration: underline; padding: 0; font-size: 13px; }
-.foot { max-width: 1120px; margin: 8px auto 40px; padding: 0 20px; color: var(--muted); font-size: 13px; }
+.own { margin-top: 22px; }
+.own label { font-size: 14px; color: var(--ink-soft); }
+.own-row { display: flex; gap: 8px; margin-top: 4px; }
+.own input { flex: 1; min-width: 0; font: inherit; font-size: 15px; padding: 8px 10px; border: 1.5px solid var(--ink); border-radius: 8px; background: var(--paper); color: var(--ink); }
+.own button, .controls button { border: 1.5px solid var(--ink); background: #fff; color: var(--ink); border-radius: 8px; padding: 8px 14px; font-weight: 700; }
+.own button:hover, .controls button:hover { background: var(--lamp-soft); }
+.msg { min-height: var(--line); margin: 8px 0 0; font-size: 14px; color: var(--ink); }
+.msg.err { color: var(--margin); }
 
-/* Inside the Even app (real glasses) the phone screen only needs the lens mirror. */
-body[data-glasses="on"] .student, body[data-glasses="on"] .controls, body[data-glasses="on"] .foot { display: none; }
-body[data-glasses="on"] .stage { grid-template-columns: 1fr; }
+/* the person wearing G2 */
+.wearer { container-type: inline-size; }
+.lens-frame { background: var(--lens); border-radius: 26px; padding: 3.2cqw; box-shadow: inset 0 0 0 2px #1d2a22, 0 18px 40px -18px rgba(27, 34, 56, .55); }
+#lens {
+  margin: 0; aspect-ratio: 2 / 1; width: 100%; overflow: hidden; white-space: pre-wrap;
+  color: var(--lens-text); font: 400 3.15cqw/1.38 var(--body); text-shadow: 0 0 .5cqw rgba(92, 255, 122, .45);
+}
+.controls { display: grid; grid-template-columns: 1fr 1.4fr 1fr 1.1fr; gap: 8px; margin-top: 14px; }
+.controls .tap { background: var(--ink); color: var(--paper); }
+.controls .tap:hover { background: #2b3555; }
+.fine { font-size: 13.5px; line-height: 1.35rem; color: var(--ink-soft); margin: 10px 0 0; max-width: 60ch; }
+.textbtn { background: none; border: 0; padding: 0; color: var(--ink); text-decoration: underline; text-underline-offset: 3px; font-size: 13.5px; }
+
+/* ---------- sections ---------- */
+section + section { margin-top: calc(var(--line) * 5); }
+h2 { font: 700 clamp(1.7rem, 3.2vw, 2.4rem)/1.1 var(--display); letter-spacing: -.025em; margin: 0 0 var(--line); max-width: 24ch; }
+h3 { font: 600 1.15rem/var(--line) var(--display); margin: 0; }
+.how { padding-top: calc(var(--line) * 2); }
+.steps { list-style: none; counter-reset: step; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 28px; }
+@media (max-width: 900px) { .steps { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 560px) { .steps { grid-template-columns: 1fr; } }
+.steps li { counter-increment: step; border-top: 2px solid var(--ink); padding-top: 10px; }
+.steps li::before { content: counter(step); display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--lamp); font: 700 14px/1 var(--display); margin-bottom: 8px; }
+.steps p, .after, .followup, .plain { color: var(--ink-soft); }
+.steps p { margin: 6px 0 0; font-size: 15.5px; }
+.after { margin-top: calc(var(--line) * 1.5); }
+
+.research blockquote { margin: 0; max-width: 62ch; border-left: 4px solid var(--lamp); padding: 2px 0 2px 22px; }
+.research blockquote p { font: 600 clamp(1.25rem, 2.2vw, 1.55rem)/1.45 var(--display); margin: 0; color: var(--ink); letter-spacing: -.01em; }
+.research blockquote footer { margin-top: 12px; font-size: 14px; color: var(--ink-soft); }
+.followup { max-width: 60ch; margin-top: var(--line); }
+
+.split { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; }
+@media (max-width: 800px) { .split { grid-template-columns: 1fr; } }
+.split h2 { font-size: clamp(1.4rem, 2.4vw, 1.8rem); }
+.plain { padding-left: 1.1em; margin: 0; }
+.plain li { margin: 0 0 6px; }
+.plain li::marker { color: var(--lamp); }
+
+.foot { max-width: 1180px; margin: calc(var(--line) * 5) auto 0; padding: 18px 24px 40px 80px; display: flex; gap: 12px; align-items: center; color: var(--ink-soft); font-size: 14px; border-top: 1px solid var(--rule); }
+.foot p { margin: 0; }
+@media (max-width: 720px) { .foot { padding-left: 16px; } }
+
+/* Inside the Even app the phone only mirrors the lens. */
+body[data-glasses='on'] { background-image: none; }
+body[data-glasses='on'] .hero-copy, body[data-glasses='on'] .room, body[data-glasses='on'] .controls,
+body[data-glasses='on'] section:not(.hero), body[data-glasses='on'] .foot, body[data-glasses='on'] .nav nav { display: none; }
+body[data-glasses='on'] .demo { grid-template-columns: 1fr; margin-top: 16px; }
