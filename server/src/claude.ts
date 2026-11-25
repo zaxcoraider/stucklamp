@@ -22,17 +22,19 @@ export const claudeInfo = enabled ? `${MODEL}${gateway ? ' via gateway' : ''}` :
 async function askPlain<T extends z.ZodType>(schema: T, system: string, user: string): Promise<z.infer<T> | null> {
   const res = await client!.messages.create({
     model: MODEL,
-    max_tokens: 2000,
+    max_tokens: 16000,
     system: `${system}\nReply with only a JSON object matching this JSON Schema, no other text:\n${JSON.stringify(z.toJSONSchema(schema))}`,
     messages: [{ role: 'user', content: user }],
   });
   if (res.stop_reason === 'refusal') return null;
+  if (res.stop_reason === 'max_tokens') console.warn('[claude] hit max_tokens');
   const text = res.content.map((b) => (b.type === 'text' ? b.text : '')).join('');
   const json = text.slice(text.indexOf('{'), text.lastIndexOf('}') + 1);
   try {
     const parsed = schema.safeParse(JSON.parse(json));
+    if (!parsed.success) console.warn('[claude] reply did not match schema:', text.slice(0, 200));
     return parsed.success ? parsed.data : null;
-  } catch { return null; }
+  } catch { console.warn('[claude] reply was not JSON:', text.slice(0, 200)); return null; }
 }
 
 async function ask<T extends z.ZodType>(schema: T, system: string, user: string): Promise<z.infer<T> | null> {
@@ -41,7 +43,7 @@ async function ask<T extends z.ZodType>(schema: T, system: string, user: string)
     if (gateway) return await askPlain(schema, system, user);
     const res = await client.beta.messages.parse({
       model: MODEL,
-      max_tokens: 2000,
+      max_tokens: 16000,
       betas: ['server-side-fallback-2026-07-01'],
       fallbacks: 'default',
       output_config: { effort: 'low', format: betaZodOutputFormat(schema) },

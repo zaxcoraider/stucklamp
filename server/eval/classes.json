@@ -1,0 +1,49 @@
+{
+  "note": "Synthetic help requests written to mimic beginners in a Python/web class: typos, missing context, different words for the same root cause. 'group' is the true root cause; requests with a unique group should never be grouped.",
+  "classes": [
+    { "name": "Python + Flask lab", "requests": [
+      { "text": "pip install flask says error: externally-managed-environment", "group": "pep668" },
+      { "text": "ModuleNotFoundError: No module named 'flask' when i run python app.py", "group": "pep668" },
+      { "text": "cant install requests, it says this environment is externally managed??", "group": "pep668" },
+      { "text": "pip install gives permission denied /usr/lib/python3/dist-packages", "group": "pep668" },
+      { "text": "source .venv/bin/activate does nothing on windows", "group": "win-activate" },
+      { "text": "'source' is not recognized as an internal or external command", "group": "win-activate" },
+      { "text": "venv activate script cannot be loaded because running scripts is disabled on this system", "group": "win-exec-policy" },
+      { "text": "flask run says Error: Could not locate a Flask application", "group": "flask-app-env" },
+      { "text": "flask: could not import 'app', no app.py found?", "group": "flask-app-env" },
+      { "text": "Address already in use port 5000", "group": "port-in-use" },
+      { "text": "OSError: [Errno 48] address already in use when starting flask", "group": "port-in-use" },
+      { "text": "IndentationError: unexpected indent line 12", "group": "indent" },
+      { "text": "my code says TabError inconsistent use of tabs and spaces", "group": "indent" },
+      { "text": "jinja2.exceptions.TemplateNotFound: index.html", "group": "template-folder" },
+      { "text": "render_template cant find my html file but its right there", "group": "template-folder" },
+      { "text": "how do i make the button blue", "group": "solo-1" }
+    ]},
+    { "name": "Web basics (HTML/CSS/JS)", "requests": [
+      { "text": "my css grid items will not center", "group": "center" },
+      { "text": "cant get the div in the middle of the page vertically", "group": "center" },
+      { "text": "justify-content center does nothing on my flex container", "group": "center" },
+      { "text": "styles.css not loading at all, page is plain", "group": "css-path" },
+      { "text": "my stylesheet link doesnt work, 404 in console for style.css", "group": "css-path" },
+      { "text": "TypeError: Cannot read properties of null (reading 'addEventListener')", "group": "dom-null" },
+      { "text": "document.getElementById returns null even though the id is right", "group": "dom-null" },
+      { "text": "Uncaught TypeError: cannot read properties of undefined (reading 'map')", "group": "undefined-map" },
+      { "text": "fetch to my api blocked by CORS policy", "group": "cors" },
+      { "text": "Access-Control-Allow-Origin header missing error", "group": "cors" },
+      { "text": "image not showing, broken icon", "group": "solo-2" },
+      { "text": "what font should I use", "group": "solo-3" }
+    ]},
+    { "name": "Git day", "requests": [
+      { "text": "git push rejected (non-fast-forward)", "group": "pull-first" },
+      { "text": "Updates were rejected because the remote contains work that you do not have locally", "group": "pull-first" },
+      { "text": "! [rejected] main -> main (fetch first)", "group": "pull-first" },
+      { "text": "remote: Support for password authentication was removed", "group": "git-auth" },
+      { "text": "git asks for password and then says authentication failed", "group": "git-auth" },
+      { "text": "CONFLICT (content): Merge conflict in index.html", "group": "conflict" },
+      { "text": "i have <<<<<<< HEAD weird lines in my file", "group": "conflict" },
+      { "text": "fatal: not a git repository (or any of the parent directories)", "group": "not-repo" },
+      { "text": "error: src refspec main does not match any", "group": "empty-commit" },
+      { "text": "accidentally committed my .env file", "group": "solo-4" }
+    ]}
+  ]
+}

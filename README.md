@@ -61,7 +61,7 @@ Research has already shown that this matters. In Carnegie Mellon's **Lumilo** st
 
 | Screen | Tap | Swipe | Double-tap |
 |---|---|---|---|
-| Next student (longest wait first) | "on my way" → student is told | next student | – |
+| Next student (longest wait first) | "on my way" → student is told (if another mentor got there first, you're told instead) | next student | – |
 | Going to a student | done | – | back to queue |
 | N stuck on the same thing | post one fix to the class | skip | – |
 | Nobody stuck | – | – | exit |
@@ -72,14 +72,30 @@ Research has already shown that this matters. In Carnegie Mellon's **Lumilo** st
 |---|---|---|
 | `/stuck problem: … seat: …` | student | joins the queue (one open request per student, and the seat is remembered) |
 | `/unstuck` | student | leaves the queue ("I figured it out") |
-| `/recap` | teacher | posts a session summary: how many asked, how many were helped, how many by a class-wide fix, average and longest wait, who is still waiting |
+| `/recap` | teacher | posts a session summary: how many asked and solved (by a mentor, by a class-wide fix, or by themselves with a hint), average and longest wait, who is still waiting, and what tripped the class up |
 
 ### What Claude does
 
 1. **Shortens** each request to 38 characters or fewer so it fits the 576×288 display, keeping the error name (*"hi sorry my code doesnt run, it says ModuleNotFoundError: No module named flask…"* → *"ModuleNotFoundError: flask missing"*).
 2. **Groups** open requests that share one root cause, and writes one fix for the class plus a shorter version for the glasses. It only groups when it is confident. For example, from `externally-managed-environment`, `ModuleNotFoundError: flask`, `pip permission denied` and `CSS grid not centering`, it grouped the three Python ones and left the CSS one alone.
 
+3. **Hints while you wait:** each student gets one private nudge from Claude (not the full answer, so they still learn). If it works, they press **That fixed it** and leave the queue, so the mentor has one less walk.
+4. **What tripped the class up:** `/recap` ends with the top recurring problems and one thing to teach differently next time.
+
 Nothing is posted to the class until the mentor taps.
+
+### Measured
+
+We tested Claude on 38 synthetic beginner help requests from three kinds of class (Python/Flask, HTML/CSS/JS, Git), with typos and different words for the same cause, over 3 runs. The script and data are in [`server/eval/`](server/eval/), and full results are in [`server/eval/RESULTS.md`](server/eval/RESULTS.md).
+
+| Measure | Result |
+|---|---|
+| Grouping precision: grouped students who really had the same problem | **1.00** (60 of 60 pairs, 0 wrong) |
+| Grouping recall: students with the same problem who were grouped | **0.91** |
+| Shortened problem fits the glasses | **38 / 38** |
+| Students who got a hint | **38 / 38** |
+
+Precision matters most: a wrong group would send a fix to students who don't need it, so Claude only groups when it is sure. The eval also caught a real bug (the reply was cut off on busy classes), which we fixed before release.
 
 ## Architecture
 
