@@ -6,6 +6,20 @@ import { newId, publicView, room, save, waitingOf, type Ticket } from './store.t
 
 const PORT = Number(process.env.PORT ?? 8787);
 const MIN_CLUSTER = Number(process.env.MIN_CLUSTER ?? 2);
+const PUBLIC_ROOM = process.env.PUBLIC_ROOM ?? 'try'; // the "try it" page; anyone may reset it
+const MAX_WAITING = 30;
+
+// Simple per-IP limit for the public web form (each ticket costs a Claude call).
+const hits = new Map<string, number[]>();
+function allowed(ip: string, perMinute = 6): boolean {
+  const now = Date.now();
+  const recent = (hits.get(ip) ?? []).filter((t) => now - t < 60_000);
+  if (recent.length >= perMinute) { hits.set(ip, recent); return false; }
+  recent.push(now); hits.set(ip, recent);
+  return true;
+}
+const clientIp = (req: IncomingMessage) =>
+  String(req.headers['x-forwarded-for'] ?? '').split(',')[0].trim() || req.socket.remoteAddress || '?';
 
 // ---------- Claude jobs (debounced so a burst of /stuck = one clustering call) ----------
 const clusterTimers = new Map<string, NodeJS.Timeout>();
@@ -79,12 +93,20 @@ createServer(async (req, res) => {
   if (req.method === 'OPTIONS') return send(res, 204, {});
   const url = new URL(req.url ?? '/', 'http://x');
   if (url.pathname === '/health') return send(res, 200, { ok: true, claude: claudeOn });
+  const reset = url.pathname.match(/^\/api\/rooms\/([\w-]+)\/reset$/);
+  if (reset && req.method === 'POST') {
+    if (reset[1] !== PUBLIC_ROOM) return send(res, 403, { error: 'only the public demo room can be reset' });
+    const r = room(reset[1]); r.tickets = []; r.clusters = []; save();
+    return send(res, 200, { ok: true });
+  }
   const web = url.pathname.match(/^\/api\/rooms\/([\w-]+)\/tickets$/);
   if (web && req.method === 'POST') {
     // Students without Discord (e.g. Demo Day QR page) can join the same queue.
+    if (!allowed(clientIp(req))) return send(res, 429, { ok: false, error: 'Slow down: max 6 requests a minute.' });
+    if (waitingOf(room(web[1])).length >= MAX_WAITING) return send(res, 429, { ok: false, error: 'The queue is full. Tap through some students first.' });
     const b = await body(req);
     const raw = String(b.problem ?? '').trim().slice(0, 300);
-    if (!raw) return send(res, 400, { error: 'problem required' });
+    if (!raw) return send(res, 400, { ok: false, error: 'Please describe the problem.' });
     const t: Ticket = {
       id: newId('t'), seat: String(b.seat ?? '?').slice(0, 12) || '?', name: String(b.name ?? 'Guest').slice(0, 24) || 'Guest',
       problem: raw, rawProblem: raw, createdAt: Date.now(), status: 'waiting', userId: '', channelId: process.env.CLASS_CHANNEL_ID ?? '',

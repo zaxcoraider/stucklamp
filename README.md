@@ -6,6 +6,7 @@ Students type `/stuck` in Discord. The mentor walking the room sees who to help 
 > **Heads Up Hackathon** (Even Realities × TVM Ventures × Daos Hub), Nov 23–29, 2026
 > **Track 01 · Messaging & News (Discord)**, with Claude (Track 04) for shortening and grouping problems.
 
+**Try it in your browser:** https://3-80-82-140.sslip.io (play the student on the left and the mentor wearing G2 on the right)
 <!-- Demo video: (link added before submission) -->
 
 ---
@@ -103,7 +104,8 @@ Discord (/stuck, /unstuck, /recap)          Students without Discord (web form)
 | `POST /api/rooms/:room/tickets/:id/claim` | glasses tap: "on my way" |
 | `POST /api/rooms/:room/tickets/:id/done` | glasses tap: done |
 | `POST /api/rooms/:room/clusters/:id/post` | glasses tap: post fix to class |
-| `POST /api/rooms/:room/tickets` | web form for students without Discord |
+| `POST /api/rooms/:room/tickets` | web form for students without Discord (max 6 a minute per IP, 30 waiting per room) |
+| `POST /api/rooms/try/reset` | "reset this demo" on the public try page (only the public room can be reset) |
 
 ## Run it yourself
 

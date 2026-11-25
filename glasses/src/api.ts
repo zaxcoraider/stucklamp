@@ -2,8 +2,10 @@
 // local demo class so the browser preview and simulator always work.
 import type { Cluster, QueueState, Ticket } from './types';
 
-const BASE = (import.meta.env.VITE_SERVER_URL as string | undefined) ?? 'http://localhost:8787';
-const ROOM = (import.meta.env.VITE_ROOM as string | undefined) ?? 'demo';
+// Empty VITE_SERVER_URL = same origin (the public "try it" page is served by the server itself).
+const BASE = (import.meta.env.VITE_SERVER_URL as string | undefined) || location.origin;
+const params = new URLSearchParams(location.search);
+export const ROOM = params.get('room') || (import.meta.env.VITE_ROOM as string | undefined) || 'demo';
 
 export interface Api {
   mode: 'server' | 'demo';
@@ -11,6 +13,18 @@ export interface Api {
   claim(id: string): Promise<void>;   // "on my way" -> DM to student
   done(id: string, note?: string): Promise<void>;
   postFix(clusterId: string): Promise<void>; // one message to the whole class
+}
+
+/** Browser "try it" page: act as a student. */
+export async function addTicket(name: string, seat: string, problem: string): Promise<{ ok: boolean; position?: number; error?: string }> {
+  const r = await fetch(`${BASE}/api/rooms/${ROOM}/tickets`, {
+    method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ name, seat, problem }),
+  });
+  return r.json().catch(() => ({ ok: false, error: `HTTP ${r.status}` }));
+}
+
+export async function resetRoom(): Promise<void> {
+  await fetch(`${BASE}/api/rooms/${ROOM}/reset`, { method: 'POST' });
 }
 
 async function call(path: string, body?: unknown): Promise<any> {

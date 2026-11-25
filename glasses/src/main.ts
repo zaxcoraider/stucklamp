@@ -9,7 +9,7 @@ import {
   type EvenAppBridge,
   type EvenHubEvent,
 } from '@evenrealities/even_hub_sdk';
-import { connect, type Api } from './api';
+import { addTicket, connect, resetRoom, ROOM, type Api } from './api';
 import { clusterCard, emptyCard, flash, goingCard, queueCard, waiting } from './screens';
 import type { QueueState } from './types';
 
@@ -121,10 +121,40 @@ function fromHub(ev: EvenHubEvent): Input | null {
 }
 
 window.addEventListener('keydown', (e) => {
+  if ((e.target as HTMLElement).closest('input, textarea, button')) return; // typing in the student form
   const map: Record<string, Input> = { Enter: 'tap', ArrowDown: 'next', ArrowUp: 'prev', ' ': 'double', l: 'hold' };
   const i = map[e.key];
   if (i) { e.preventDefault(); void handle(i); }
 });
+
+// ---------- browser "try it" page ----------
+function wirePage() {
+  document.querySelectorAll<HTMLButtonElement>('[data-in]').forEach((b) =>
+    b.addEventListener('click', () => void handle(b.dataset.in as Input)));
+
+  const form = document.getElementById('stuck-form') as HTMLFormElement | null;
+  const msg = document.getElementById('student-msg');
+  if (!form || !msg) return;
+  document.querySelectorAll<HTMLButtonElement>('.chips button').forEach((b) => b.addEventListener('click', () => {
+    (form.elements.namedItem('name') as HTMLInputElement).value = b.dataset.n ?? '';
+    (form.elements.namedItem('seat') as HTMLInputElement).value = b.dataset.s ?? '';
+    (form.elements.namedItem('problem') as HTMLTextAreaElement).value = b.dataset.p ?? '';
+  }));
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const f = new FormData(form);
+    msg.className = 'msg'; msg.textContent = 'Sending…';
+    if (api.mode === 'demo') { msg.className = 'msg err'; msg.textContent = 'Server offline: showing the built-in demo class instead.'; return; }
+    try {
+      const r = await addTicket(String(f.get('name')), String(f.get('seat') || '?'), String(f.get('problem')));
+      if (r.ok) { msg.textContent = `🙋 Got it, you're #${r.position} in line. Watch the glasses →`; form.reset(); void refresh(); }
+      else { msg.className = 'msg err'; msg.textContent = r.error ?? 'Could not add you.'; }
+    } catch { msg.className = 'msg err'; msg.textContent = 'Network error.'; }
+  });
+  document.getElementById('reset')?.addEventListener('click', async () => {
+    await resetRoom(); goingId = null; parkedGoing.clear(); skippedClusters.clear(); cursor = 0; void refresh();
+  });
+}
 
 // ---------- boot ----------
 async function boot() {
@@ -148,7 +178,11 @@ async function boot() {
     }
     bridge.onEvenHubEvent((ev) => { const i = fromHub(ev); if (i) void handle(i); });
   }
-  console.log(`Stucklamp: ${api.mode} mode, glasses bridge ${bridge ? 'on' : 'off'}`);
+  if (bridge) document.body.dataset.glasses = 'on';
+  const mode = document.getElementById('mode');
+  if (mode) mode.textContent = api.mode === 'server' ? `live · room "${ROOM}"` : 'offline demo class';
+  wirePage();
+  console.log(`Stucklamp: ${api.mode} mode, room ${ROOM}, glasses bridge ${bridge ? 'on' : 'off'}`);
   await refresh();
   setInterval(refresh, 3000);
   setInterval(render, 15000); // keep "waiting Xm" fresh
