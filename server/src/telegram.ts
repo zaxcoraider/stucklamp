@@ -92,7 +92,11 @@ async function onCallback(q: any, hooks: TgHooks) {
 }
 
 export async function startTelegram(hooks: TgHooks) {
-  const me = await tg('getMe', {});
+  let me: any;
+  for (let attempt = 1; ; attempt++) { // the network can be briefly unavailable right after boot
+    try { me = await tg('getMe', {}); break; }
+    catch (e) { console.warn(`[telegram] start attempt ${attempt} failed: ${(e as Error).message}`); await new Promise((r) => setTimeout(r, Math.min(30, attempt * 5) * 1000)); }
+  }
   await tg('setMyCommands', { commands: [
     { command: 'stuck', description: 'Ask for help: /stuck 14 what is wrong' },
     { command: 'unstuck', description: 'Leave the help queue' },
