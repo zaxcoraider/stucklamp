@@ -59,21 +59,41 @@ async function ask<T extends z.ZodType>(schema: T, system: string, user: string)
   }
 }
 
-const Short = z.object({ short: z.string() });
+const Triage = z.object({ short: z.string(), hint: z.string() });
 
-/** "my code won't run it says ModuleNotFoundError no module named flask" -> "ModuleNotFoundError: flask" */
-export async function shorten(raw: string): Promise<string> {
+/**
+ * One call per new request:
+ * - short: fits the glasses ("ModuleNotFoundError: flask missing")
+ * - hint: a nudge the student can try while waiting (not the full answer)
+ */
+export async function triage(raw: string): Promise<{ short: string; hint: string | null }> {
   const fallback = raw.length <= 38 ? raw : raw.slice(0, 37) + '…';
-  if (raw.length <= 38) return raw;
   const out = await ask(
-    Short,
-    'You rewrite a student\'s help request for a teacher\'s smart-glasses display. ' +
-      'Output at most 38 characters: the concrete problem, keeping any error name or tool. ' +
-      'No greeting, no student name, no trailing period.',
+    Triage,
+    'A student in a hands-on class asked for help. Return two fields. ' +
+      'short: the concrete problem in at most 38 characters for the teacher\'s smart-glasses display, keeping any error name or tool; no greeting, no name, no trailing period. ' +
+      'hint: one nudge the student can try while waiting for the mentor, at most 180 characters, written to the student ("Check whether…", "Try…"). ' +
+      'Point them in the right direction instead of giving the whole solution, so they still learn. ' +
+      'If the request is too vague to hint at, ask them for the exact error message instead.',
     raw,
   );
   const s = out?.short.trim();
-  return s && s.length <= 42 ? s : fallback;
+  const h = out?.hint.trim();
+  return { short: s && s.length <= 42 ? s : fallback, hint: h ? h.slice(0, 220) : null };
+}
+
+const Insight = z.object({ top: z.array(z.string()), suggestion: z.string() });
+
+/** End-of-session: what tripped people up, and one thing to teach differently next time. */
+export async function insight(problems: string[]) {
+  if (problems.length < 3) return null;
+  return ask(
+    Insight,
+    'These are the help requests from one class session, one per line. ' +
+      'top: up to 3 recurring problems, most common first, each under 60 characters with a count in brackets, e.g. "pip blocked outside a venv (5)". ' +
+      'suggestion: one concrete thing the teacher could add to the start of the next class to prevent the most common problem, under 160 characters.',
+    problems.join('\n'),
+  );
 }
 
 const Groups = z.object({

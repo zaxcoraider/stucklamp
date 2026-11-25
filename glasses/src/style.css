@@ -95,6 +95,8 @@ h1 { font: 700 clamp(2.6rem, 6.2vw, 4.9rem)/1.02 var(--display); letter-spacing:
 .own button:hover, .controls button:hover { background: var(--lamp-soft); }
 .msg { min-height: var(--line); margin: 8px 0 0; font-size: 14px; color: var(--ink); }
 .msg.err { color: var(--margin); }
+.msg.hint { background: var(--lamp-soft); border-radius: 8px; padding: 8px 10px; line-height: 1.4rem; }
+.msg.hint .textbtn { font-size: 14px; font-weight: 700; margin-left: 2px; }
 
 /* the person wearing G2 */
 .wearer { container-type: inline-size; }

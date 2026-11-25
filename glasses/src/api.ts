@@ -5,6 +5,14 @@ import type { Cluster, QueueState, Ticket } from './types';
 // Empty VITE_SERVER_URL = same origin (the public "try it" page is served by the server itself).
 const BASE = (import.meta.env.VITE_SERVER_URL as string | undefined) || location.origin;
 const params = new URLSearchParams(location.search);
+// Each pair of glasses gets its own id, so two mentors never walk to the same student.
+export const MENTOR = (() => {
+  try {
+    let id = localStorage.getItem('stucklamp-mentor');
+    if (!id) { id = 'm' + Math.random().toString(36).slice(2, 8); localStorage.setItem('stucklamp-mentor', id); }
+    return id;
+  } catch { return 'm' + Math.random().toString(36).slice(2, 8); }
+})();
 export const ROOM = params.get('room') || (import.meta.env.VITE_ROOM as string | undefined) || 'demo';
 
 export interface Api {
@@ -16,11 +24,16 @@ export interface Api {
 }
 
 /** Browser "try it" page: act as a student. */
-export async function addTicket(name: string, seat: string, problem: string): Promise<{ ok: boolean; position?: number; error?: string }> {
+export async function addTicket(name: string, seat: string, problem: string): Promise<{ ok: boolean; id?: string; position?: number; error?: string }> {
   const r = await fetch(`${BASE}/api/rooms/${ROOM}/tickets`, {
     method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ name, seat, problem }),
   });
   return r.json().catch(() => ({ ok: false, error: `HTTP ${r.status}` }));
+}
+
+export async function selfSolve(id: string): Promise<boolean> {
+  const r = await fetch(`${BASE}/api/rooms/${ROOM}/tickets/${id}/selfsolve`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}' });
+  return r.ok;
 }
 
 export async function resetRoom(): Promise<void> {
@@ -46,7 +59,7 @@ export async function connect(): Promise<Api> {
     return {
       mode: 'server',
       get: () => call(''),
-      claim: (id) => call(`/tickets/${id}/claim`, {}),
+      claim: (id) => call(`/tickets/${id}/claim`, { mentor: MENTOR }),
       done: (id, note) => call(`/tickets/${id}/done`, { note }),
       postFix: (cid) => call(`/clusters/${cid}/post`, {}),
     };

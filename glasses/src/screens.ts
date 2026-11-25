@@ -20,7 +20,8 @@ export function waiting(q: QueueState): Ticket[] {
 
 export function header(q: QueueState): string {
   const n = waiting(q).length;
-  return `STUCKLAMP · ${n} waiting · ${q.helpedToday} helped`;
+  const others = q.tickets.filter((t) => t.status === 'going').length;
+  return `STUCKLAMP · ${n} waiting${others ? ` · ${others} on the way` : ''} · ${q.helpedToday} helped`;
 }
 
 export function queueCard(q: QueueState, t: Ticket, idx: number, total: number, now: number): string {
@@ -59,7 +60,8 @@ export function clusterCard(c: Cluster): string {
 }
 
 export function emptyCard(q: QueueState): string {
-  return [header(q), '', '', '   Nobody is stuck right now.', '', '', 'double-tap: exit'].join('\n');
+  const self = q.selfSolvedToday ? `   ${q.selfSolvedToday} fixed it themselves with a hint.` : '';
+  return [header(q), '', '', '   Nobody is stuck right now.', self, '', 'double-tap: exit'].join('\n');
 }
 
 export function flash(msg: string): string {

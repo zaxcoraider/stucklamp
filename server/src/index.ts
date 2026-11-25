@@ -1,7 +1,7 @@
 // Stucklamp server: HTTP API for the glasses + Discord bot + Claude.
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
-import { claudeInfo, claudeOn, cluster, shorten } from './claude.ts';
-import { postToClass, startDiscord, tell } from './discord.ts';
+import { claudeInfo, claudeOn, cluster, triage } from './claude.ts';
+import { postToClass, sendHint, startDiscord, tell } from './discord.ts';
 import { newId, publicView, room, save, waitingOf, type Ticket } from './store.ts';
 
 const PORT = Number(process.env.PORT ?? 8787);
@@ -36,16 +36,28 @@ function scheduleCluster(roomId: string) {
 }
 
 async function onNewTicket(roomId: string, t: Ticket) {
-  t.problem = await shorten(t.rawProblem); save();
+  const { short, hint } = await triage(t.rawProblem);
+  t.problem = short;
+  if (hint && t.status === 'waiting') { t.hint = hint; void sendHint(t); }
+  save();
   if (claudeOn) scheduleCluster(roomId);
 }
 
 // ---------- actions from the glasses ----------
-async function claim(roomId: string, id: string) {
+async function claim(roomId: string, id: string, mentor?: string) {
+  const t = room(roomId).tickets.find((x) => x.id === id);
+  if (!t || t.status !== 'waiting') return false; // another mentor got there first
+  t.status = 'going'; t.helpedAt = Date.now(); t.claimedBy = mentor?.slice(0, 24); save();
+  void tell(t, '🏃 **A mentor is on the way to you now.**');
+  return true;
+}
+
+/** The student fixed it with Claude's hint before a mentor came. */
+export function selfSolve(roomId: string, id: string, fromWeb = false) {
   const t = room(roomId).tickets.find((x) => x.id === id);
   if (!t || t.status !== 'waiting') return false;
-  t.status = 'going'; t.helpedAt = Date.now(); save();
-  void tell(t, '🏃 **A mentor is on the way to you now.**');
+  if (fromWeb && t.userId) return false; // Discord students confirm with their own button
+  t.status = 'done'; t.selfSolved = true; t.doneAt = Date.now(); save();
   return true;
 }
 
@@ -115,7 +127,7 @@ createServer(async (req, res) => {
     void onNewTicket(web[1], t);
     return send(res, 200, { ok: true, id: t.id, position: waitingOf(room(web[1])).length });
   }
-  const m = url.pathname.match(/^\/api\/rooms\/([\w-]+)(?:\/(tickets|clusters)\/([\w-]+)\/(claim|done|post))?$/);
+  const m = url.pathname.match(/^\/api\/rooms\/([\w-]+)(?:\/(tickets|clusters)\/([\w-]+)\/(claim|done|post|selfsolve))?$/);
   if (!m) return send(res, 404, { error: 'not found' });
   const [, roomId, , id, action] = m;
   try {
@@ -123,7 +135,8 @@ createServer(async (req, res) => {
     if (!action) return send(res, 405, { error: 'method' });
     if (req.method !== 'POST') return send(res, 405, { error: 'method' });
     const b = await body(req);
-    const ok = action === 'claim' ? await claim(roomId, id)
+    const ok = action === 'claim' ? await claim(roomId, id, typeof b.mentor === 'string' ? b.mentor : undefined)
+      : action === 'selfsolve' ? selfSolve(roomId, id, true)
       : action === 'done' ? await done(roomId, id, typeof b.note === 'string' ? b.note : undefined)
       : await postFix(roomId, id);
     return send(res, ok ? 200 : 409, { ok });
@@ -134,7 +147,7 @@ createServer(async (req, res) => {
 }).listen(PORT, () => console.log(`[http] listening on http://localhost:${PORT}  (Claude: ${claudeInfo})`));
 
 if (process.env.DISCORD_TOKEN && process.env.DISCORD_APP_ID) {
-  startDiscord({ onNewTicket: (r, t) => void onNewTicket(r, t) }).catch((e) => console.error('[discord] login failed:', e.message));
+  startDiscord({ onNewTicket: (r, t) => void onNewTicket(r, t), onSelfSolved: (r, id) => selfSolve(r, id) }).catch((e) => console.error('[discord] login failed:', e.message));
 } else {
   console.warn('[discord] off: DISCORD_TOKEN / DISCORD_APP_ID missing in .env');
 }

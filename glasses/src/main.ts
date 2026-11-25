@@ -10,7 +10,7 @@ import {
   type EvenAppBridge,
   type EvenHubEvent,
 } from '@evenrealities/even_hub_sdk';
-import { addTicket, connect, resetRoom, ROOM, type Api } from './api';
+import { addTicket, connect, MENTOR, resetRoom, ROOM, selfSolve, type Api } from './api';
 import { initPage, paintRoom } from './page';
 import { clusterCard, emptyCard, flash, goingCard, queueCard, waiting } from './screens';
 import type { QueueState } from './types';
@@ -46,7 +46,7 @@ function screen(): string {
   if (now < flashUntil) return flashText;
   if (!goingId) {
     // After a reload, resume the student we were walking to.
-    const g = q.tickets.filter((x) => x.status === 'going' && !parkedGoing.has(x.id))
+    const g = q.tickets.filter((x) => x.status === 'going' && (!x.claimedBy || x.claimedBy === MENTOR) && !parkedGoing.has(x.id))
       .sort((a, b) => (b.helpedAt ?? 0) - (a.helpedAt ?? 0))[0];
     if (g) goingId = g.id;
   }
@@ -99,9 +99,13 @@ async function handle(input: Input) {
   if (input === 'prev') cursor = (cursor - 1 + list.length) % list.length;
   if (input === 'tap') {
     const t = list[cursor];
-    await api.claim(t.id);
-    goingId = t.id;
-    say(`Seat ${t.seat} knows you're coming`);
+    try {
+      await api.claim(t.id);
+      goingId = t.id;
+      say(`Seat ${t.seat} knows you're coming`);
+    } catch {
+      say(`Another mentor is going to seat ${t.seat}`); // two pairs of glasses, one student
+    }
   }
   return refresh();
 }
@@ -136,7 +140,7 @@ function wirePage() {
   document.getElementById('reset')?.addEventListener('click', async () => {
     await resetRoom(); goingId = null; parkedGoing.clear(); skippedClusters.clear(); cursor = 0; void refresh();
   });
-  initPage({ mode: api.mode, add: addTicket, refresh: () => void refresh() });
+  initPage({ mode: api.mode, add: addTicket, selfSolve, refresh: () => void refresh() });
 }
 
 // ---------- boot ----------

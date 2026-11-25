@@ -10,6 +10,8 @@ export interface Ticket {
   status: TicketStatus;
   helpedAt?: number;
   doneAt?: number;
+  hint?: string;       // Claude's nudge to the student
+  claimedBy?: string;  // mentor id that tapped "on my way"
 }
 
 /** Several students stuck on the same thing: one fix for the whole class. */
@@ -25,4 +27,5 @@ export interface QueueState {
   tickets: Ticket[];
   clusters: Cluster[];
   helpedToday: number;
+  selfSolvedToday?: number;
 }

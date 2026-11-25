@@ -15,6 +15,9 @@ export interface Ticket {
   doneAt?: number;
   note?: string;
   viaFix?: string;     // cluster id if solved by a class-wide fix
+  hint?: string;       // Claude's nudge sent to the student while waiting
+  selfSolved?: boolean; // student fixed it with the hint before a mentor came
+  claimedBy?: string;  // which mentor's glasses tapped "on my way"
   // Discord routing (never sent to the glasses)
   userId: string;
   channelId: string;
@@ -65,9 +68,10 @@ export function publicView(r: Room) {
     room: r.id,
     tickets: r.tickets
       .filter((t) => t.status === 'waiting' || t.status === 'going')
-      .map(({ id, seat, name, problem, createdAt, status, helpedAt }) => ({ id, seat, name, problem, createdAt, status, helpedAt })),
+      .map(({ id, seat, name, problem, createdAt, status, helpedAt, hint, claimedBy }) => ({ id, seat, name, problem, createdAt, status, helpedAt, hint, claimedBy })),
     clusters: r.clusters.map(({ id, label, ticketIds, fix, glassesFix }) => ({ id, label, ticketIds, fix: glassesFix || fix })),
-    helpedToday: r.tickets.filter((t) => t.status === 'done' && (t.doneAt ?? 0) >= startOfDay.getTime()).length,
+    helpedToday: r.tickets.filter((t) => t.status === 'done' && !t.selfSolved && (t.doneAt ?? 0) >= startOfDay.getTime()).length,
+    selfSolvedToday: r.tickets.filter((t) => t.selfSolved && (t.doneAt ?? 0) >= startOfDay.getTime()).length,
   };
 }
 

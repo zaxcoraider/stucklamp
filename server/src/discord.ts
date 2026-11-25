@@ -1,13 +1,13 @@
 // Discord side: students type /stuck, the bot tells them when help is coming,
 // and posts one fix to the class when several hit the same wall.
 import {
-  ChatInputCommandInteraction, Client, Events, GatewayIntentBits, MessageFlags, REST, Routes,
+  ActionRowBuilder, ButtonBuilder, ButtonStyle, ChatInputCommandInteraction, Client, Events, GatewayIntentBits, MessageFlags, REST, Routes,
   SlashCommandBuilder, type Guild, type SendableChannels,
 } from 'discord.js';
 import { newId, room, save, waitingOf, type Ticket } from './store.ts';
-import { recapText } from './recap.ts';
+import { recapText, recapWithInsight } from './recap.ts';
 
-export interface Hooks { onNewTicket(roomId: string, t: Ticket): void }
+export interface Hooks { onNewTicket(roomId: string, t: Ticket): void; onSelfSolved(roomId: string, ticketId: string): boolean }
 
 const ROOM = process.env.ROOM ?? 'demo';
 const followUps = new Map<string, { i: ChatInputCommandInteraction; at: number }>();
@@ -37,6 +37,14 @@ export function startDiscord(hooks: Hooks) {
   client.on(Events.GuildCreate, (g) => { register(g).catch((e) => console.error('[discord] register', e.message)); });
 
   client.on(Events.InteractionCreate, async (i) => {
+    if (i.isButton() && i.customId.startsWith('solved:')) {
+      const id = i.customId.slice(7);
+      const t = room(ROOM).tickets.find((x) => x.id === id);
+      if (!t || t.userId !== i.user.id) { await i.reply({ content: 'This button is for the student who asked.', flags: MessageFlags.Ephemeral }); return; }
+      const ok = hooks.onSelfSolved(ROOM, id);
+      await i.reply({ content: ok ? '🎉 Nice work, you solved it yourself. You are off the queue.' : 'A mentor is already on the way, so let them know it is fixed.', flags: MessageFlags.Ephemeral });
+      return;
+    }
     if (!i.isChatInputCommand()) return;
     const r = room(ROOM);
     try {
@@ -64,7 +72,8 @@ export function startDiscord(hooks: Hooks) {
         mine.forEach((t) => (t.status = 'cancelled')); save();
         await i.reply({ content: mine.length ? '👍 Nice, you are off the queue.' : 'You are not in the queue.', flags: MessageFlags.Ephemeral });
       } else if (i.commandName === 'recap') {
-        await i.reply({ content: recapText(r) });
+        await i.deferReply();
+        await i.editReply({ content: await recapWithInsight(r) });
       }
     } catch (e) {
       console.error('[discord] interaction', e);
@@ -72,6 +81,20 @@ export function startDiscord(hooks: Hooks) {
   });
 
   return client.login(process.env.DISCORD_TOKEN);
+}
+
+/** Claude's nudge while they wait, with a button to leave the queue if it worked. */
+export async function sendHint(t: Ticket) {
+  if (!t.userId || !t.hint) return;
+  const f = followUps.get(t.id);
+  const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
+    new ButtonBuilder().setCustomId(`solved:${t.id}`).setLabel('That fixed it').setStyle(ButtonStyle.Success).setEmoji('✅'),
+  );
+  const content = `💡 **While you wait** (hint from Claude, AI): ${t.hint}\nA mentor is still coming. If this solves it, press the button.`;
+  try {
+    if (f && Date.now() - f.at < 14 * 60_000) await f.i.followUp({ content, components: [row], flags: MessageFlags.Ephemeral });
+    else await (await client.users.fetch(t.userId)).send({ content, components: [row] });
+  } catch (e) { console.warn('[discord] hint not delivered', (e as Error).message); }
 }
 
 /** Private message to one student: prefer the ephemeral follow-up (no DM settings needed). */
