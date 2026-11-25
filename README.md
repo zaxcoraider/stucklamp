@@ -62,7 +62,7 @@ Research has already shown that this matters. In Carnegie Mellon's **Lumilo** st
 | Screen | Tap | Swipe | Double-tap |
 |---|---|---|---|
 | Next student (longest wait first) | "on my way" → student is told (if another mentor got there first, you're told instead) | next student | – |
-| Going to a student | done | – | back to queue |
+| Going to a student | done (hold: say what fixed it, and it's saved as a note) | – | back to queue |
 | N stuck on the same thing | post one fix to the class | skip | – |
 | Nobody stuck | – | – | exit |
 
@@ -97,6 +97,10 @@ We tested Claude on 38 synthetic beginner help requests from three kinds of clas
 
 Precision matters most: a wrong group would send a fix to students who don't need it, so Claude only groups when it is sure. The eval also caught a real bug (the reply was cut off on busy classes), which we fixed before release.
 
+### Voice notes
+
+On the "going" screen, hold the touchpad and say what fixed it ("fixed, he needed to pull before pushing"), then let go. The G2 microphone audio is transcribed **on our own server with [whisper.cpp](https://github.com/ggml-org/whisper.cpp)** (tiny English model, about 3 seconds), so the audio never goes to a third party. The note is saved with the request and shows up in `/recap`.
+
 ## Architecture
 
 ```
@@ -121,6 +125,8 @@ Discord (/stuck, /unstuck, /recap)          Students without Discord (web form)
 | `POST /api/rooms/:room/tickets/:id/done` | glasses tap: done |
 | `POST /api/rooms/:room/clusters/:id/post` | glasses tap: post fix to class |
 | `POST /api/rooms/:room/tickets` | web form for students without Discord (max 6 a minute per IP, 30 waiting per room) |
+| `POST /api/rooms/:room/tickets/:id/voice` | glasses: raw 16-bit mono PCM voice note, transcribed with whisper.cpp |
+| `POST /api/rooms/:room/tickets/:id/selfsolve` | web form: "that fixed it" after Claude's hint |
 | `POST /api/rooms/try/reset` | "reset this demo" on the public try page (only the public room can be reset) |
 
 ## Run it yourself
@@ -139,6 +145,8 @@ cp .env.example .env        # paste DISCORD_TOKEN, DISCORD_APP_ID, ANTHROPIC_API
 npm install
 npm start                   # http://localhost:8787, slash commands register automatically
 ```
+Optional voice notes: build [whisper.cpp](https://github.com/ggml-org/whisper.cpp) (`cmake -B build && cmake --build build --target whisper-cli`), download `ggml-tiny.en.bin`, and set `WHISPER_BIN` and `WHISPER_MODEL` in `.env`. `/health` reports `"voice": true` when it's ready.
+
 To reach Claude through an Anthropic-compatible gateway (we used DGrid), copy `.env.gateway.example` to `.env.gateway`. The key is then sent as a Bearer token and requests use plain JSON mode.
 
 ### 3. Glasses app
@@ -158,6 +166,7 @@ evenhub-simulator http://127.0.0.1:5173/
 - **Student data stays small:** display name, seat and the problem text. No email addresses and no message history. The glasses never receive Discord user IDs.
 - **The mentor decides:** Claude only suggests. Nothing reaches the class without a tap on the glasses.
 - **Private replies:** "a mentor is on the way" is sent as a private reply only that student can see (with a DM fallback), not posted to the channel.
+- **Voice stays on our server:** voice notes are transcribed locally with whisper.cpp, and the audio file is deleted right away.
 - **Third parties:** problem text is sent to Claude, through the Anthropic API or the gateway you configure, to shorten and group it. If your school's policy needs it, run with the direct Anthropic API.
 - **Keys:** the bot token and API keys live only in `server/.env` on the server and are never in the glasses app or this repo.
 - **Not a grading or monitoring tool:** it only shows students who asked for help.
