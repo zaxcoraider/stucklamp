@@ -43,7 +43,7 @@ export function goingCard(t: Ticket, now: number): string {
     clip(`${t.name}: ${t.problem}`),
     `told them you're coming · ${mins(now - (t.helpedAt ?? now))} ago`,
     '',
-    'tap: done   hold: voice note',
+    'tap: done   hold: say what fixed it',
     'double-tap: back to queue',
   ].join('\n');
 }

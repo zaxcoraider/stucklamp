@@ -3,6 +3,7 @@ import { createServer, type IncomingMessage, type ServerResponse } from 'node:ht
 import { claudeInfo, claudeOn, cluster, triage } from './claude.ts';
 import { postToClass, sendHint, startDiscord, tell } from './discord.ts';
 import { newId, publicView, room, save, waitingOf, type Ticket } from './store.ts';
+import { transcribe, voiceOn } from './voice.ts';
 
 const PORT = Number(process.env.PORT ?? 8787);
 const MIN_CLUSTER = Number(process.env.MIN_CLUSTER ?? 2);
@@ -104,7 +105,19 @@ async function body(req: IncomingMessage): Promise<any> {
 createServer(async (req, res) => {
   if (req.method === 'OPTIONS') return send(res, 204, {});
   const url = new URL(req.url ?? '/', 'http://x');
-  if (url.pathname === '/health') return send(res, 200, { ok: true, claude: claudeOn });
+  if (url.pathname === '/health') return send(res, 200, { ok: true, claude: claudeOn, voice: voiceOn() });
+  const voice = url.pathname.match(/^\/api\/rooms\/([\w-]+)\/tickets\/([\w-]+)\/voice$/);
+  if (voice && req.method === 'POST') {
+    // Raw 16-bit mono PCM from the glasses mic. Saved as the mentor's note, then the ticket is done.
+    if (!voiceOn()) return send(res, 501, { ok: false, error: 'Voice notes are not set up on this server.' });
+    const chunks: Buffer[] = []; let size = 0;
+    for await (const c of req) { size += (c as Buffer).length; if (size > 2_000_000) return send(res, 413, { ok: false, error: 'Note too long (max ~60 s).' }); chunks.push(c as Buffer); }
+    const rate = Number(url.searchParams.get('rate') ?? 16000) || 16000;
+    const text = await transcribe(Buffer.concat(chunks), rate);
+    if (!text) return send(res, 422, { ok: false, error: 'Could not hear a note.' });
+    await done(voice[1], voice[2], text);
+    return send(res, 200, { ok: true, note: text });
+  }
   const reset = url.pathname.match(/^\/api\/rooms\/([\w-]+)\/reset$/);
   if (reset && req.method === 'POST') {
     if (reset[1] !== PUBLIC_ROOM) return send(res, 403, { error: 'only the public demo room can be reset' });

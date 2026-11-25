@@ -1,5 +1,6 @@
 import './style.css';
 import {
+  AudioInputSource,
   CreateStartUpPageContainer,
   OsEventTypeList,
   RebuildPageContainer,
@@ -15,7 +16,7 @@ import { initPage, paintRoom } from './page';
 import { clusterCard, emptyCard, flash, goingCard, queueCard, waiting } from './screens';
 import type { QueueState } from './types';
 
-type Input = 'tap' | 'next' | 'prev' | 'double' | 'hold';
+type Input = 'tap' | 'next' | 'prev' | 'double' | 'hold' | 'release';
 
 // ---------- state ----------
 let api: Api;
@@ -26,6 +27,10 @@ const skippedClusters = new Set<string>();
 const parkedGoing = new Set<string>(); // 'going' tickets the mentor stepped back from
 let flashUntil = 0;
 let flashText = '';
+// voice note recording (hold on the "going" screen, release to save)
+let recording = false;
+let pcm: Uint8Array[] = [];
+let recTimer: ReturnType<typeof setTimeout> | null = null;
 
 // ---------- output: glasses + browser preview ----------
 const lens = document.getElementById('lens') as HTMLPreElement;
@@ -43,6 +48,7 @@ async function show(text: string) {
 
 function screen(): string {
   const now = Date.now();
+  if (recording) return ['', '', '   ● Recording a note…', '', '   Say what fixed it.', '   Let go to save.'].join('\n');
   if (now < flashUntil) return flashText;
   if (!goingId) {
     // After a reload, resume the student we were walking to.
@@ -79,11 +85,13 @@ async function refresh() {
 
 // ---------- input ----------
 async function handle(input: Input) {
-  if (Date.now() < flashUntil) return;
+  if (recording && input !== 'release') return;
+  if (Date.now() < flashUntil && input !== 'release') return;
   if (goingId) {
     if (input === 'tap') { await api.done(goingId); goingId = null; cursor = 0; say('Marked as helped'); }
     else if (input === 'double') { parkedGoing.add(goingId); goingId = null; }
-    else if (input === 'hold') { say('Voice notes: coming soon'); }
+    else if (input === 'hold') { await startNote(); return; }
+    else if (input === 'release') { await stopNote(); return; }
     return refresh();
   }
   const cluster = q.clusters.find((c) => !skippedClusters.has(c.id));
@@ -110,7 +118,35 @@ async function handle(input: Input) {
   return refresh();
 }
 
+async function startNote() {
+  if (!bridge) { say('Voice notes need the glasses mic'); return; }
+  if (!goingId) return;
+  pcm = []; recording = true; render();
+  await bridge.audioControl(true, AudioInputSource.Glasses);
+  recTimer = setTimeout(() => void stopNote(), 15_000); // notes are short; stop by itself
+}
+
+async function stopNote() {
+  if (!recording) return;
+  recording = false;
+  if (recTimer) { clearTimeout(recTimer); recTimer = null; }
+  await bridge?.audioControl(false);
+  const id = goingId;
+  const total = pcm.reduce((n, c) => n + c.length, 0);
+  const all = new Uint8Array(total); let o = 0; for (const c of pcm) { all.set(c, o); o += c.length; }
+  pcm = [];
+  if (!id || total < 8000) { say('Note too short, nothing saved'); return; }
+  say('Saving note…', 8000);
+  try {
+    const r = await api.voice(id, all);
+    if (r.ok) { goingId = null; cursor = 0; say(`Saved: "${(r.note ?? '').slice(0, 60)}"`, 2500); }
+    else say(r.error ?? 'Could not save the note', 2000);
+  } catch { say('Could not save the note', 2000); }
+  void refresh();
+}
+
 function fromHub(ev: EvenHubEvent): Input | null {
+  if (ev.audioEvent) { if (recording) pcm.push(ev.audioEvent.audioPcm); return null; }
   const src = ev.textEvent ?? ev.listEvent ?? ev.sysEvent;
   if (!src) return null;
   // CLICK_EVENT is 0 and protobuf may drop zero values, so a bare event = tap.
@@ -121,6 +157,7 @@ function fromHub(ev: EvenHubEvent): Input | null {
     case OsEventTypeList.SCROLL_BOTTOM_EVENT: return 'next';
     case OsEventTypeList.SCROLL_TOP_EVENT: return 'prev';
     case OsEventTypeList.LONG_PRESS_EVENT: return 'hold';
+    case OsEventTypeList.LONG_PRESS_RELEASE_EVENT: return 'release';
     case OsEventTypeList.FOREGROUND_ENTER_EVENT: void refresh(); return null;
     default: return null;
   }

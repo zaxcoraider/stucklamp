@@ -21,6 +21,7 @@ export interface Api {
   claim(id: string): Promise<void>;   // "on my way" -> DM to student
   done(id: string, note?: string): Promise<void>;
   postFix(clusterId: string): Promise<void>; // one message to the whole class
+  voice(id: string, pcm: Uint8Array): Promise<{ ok: boolean; note?: string; error?: string }>;
 }
 
 /** Browser "try it" page: act as a student. */
@@ -62,6 +63,12 @@ export async function connect(): Promise<Api> {
       claim: (id) => call(`/tickets/${id}/claim`, { mentor: MENTOR }),
       done: (id, note) => call(`/tickets/${id}/done`, { note }),
       postFix: (cid) => call(`/clusters/${cid}/post`, {}),
+      async voice(id, pcm) {
+        const r = await fetch(`${BASE}/api/rooms/${ROOM}/tickets/${id}/voice?rate=16000`, {
+          method: 'POST', headers: { 'content-type': 'application/octet-stream' }, body: pcm as BodyInit,
+        });
+        return r.json().catch(() => ({ ok: false, error: `HTTP ${r.status}` }));
+      },
     };
   } catch {
     return demoApi();
@@ -89,6 +96,7 @@ function demoApi(): Api {
     async get() { return { room: 'demo', tickets, clusters, helpedToday }; },
     async claim(id) { const t = find(id); t.status = 'going'; t.helpedAt = Date.now(); },
     async done(id) { const t = find(id); t.status = 'done'; t.doneAt = Date.now(); helpedToday++; },
+    async voice() { return { ok: false, error: 'Voice notes need the live server' }; },
     async postFix(cid) {
       const c = clusters.find((x) => x.id === cid);
       if (!c) return;
