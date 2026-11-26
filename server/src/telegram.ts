@@ -4,6 +4,7 @@ import { recapWithInsight } from './recap.ts';
 
 const TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const ROOM = process.env.ROOM ?? 'demo';
+let botUsername = 'stucklamp_bot';
 const API = `https://api.telegram.org/bot${TOKEN}`;
 export const telegramOn = !!TOKEN;
 
@@ -77,7 +78,17 @@ async function onMessage(msg: any, hooks: TgHooks) {
   } else if (/^\/recap(@\w+)?\b/i.test(text)) {
     await tg('sendMessage', { chat_id: msg.chat.id, text: toHtml(await recapWithInsight(r)), parse_mode: 'HTML' });
   } else if (/^\/start\b/i.test(text) && msg.chat.type === 'private') {
-    await reply('👋 Hi! In your class group, send <code>/stuck 14 what is wrong</code> (14 = your seat). I will message you here when a mentor is on the way.');
+    const site = process.env.PUBLIC_URL ?? 'https://3-80-82-140.sslip.io';
+    await tg('sendMessage', {
+      chat_id: msg.chat.id, parse_mode: 'HTML',
+      text: `🔦 <b>Hi ${esc(from.first_name ?? 'there')}, you're all set.</b>\n\n`
+        + `When you get stuck, send this in your class group:\n<code>/stuck 14 pip install fails</code>\n<i>(14 = your seat)</i>\n\n`
+        + `💡 I'll send you a hint from Claude right away.\n🏃 I'll tell you here when your mentor is on the way.\n✅ Fixed it yourself? Press the button or send /unstuck.`,
+      reply_markup: { inline_keyboard: [
+        [{ text: '➕ Add me to your class group', url: `https://t.me/${botUsername}?startgroup=true` }],
+        [{ text: '👓 See what the teacher sees', url: `${site}/?room=${ROOM}` }],
+      ] },
+    });
   }
 }
 
@@ -102,6 +113,7 @@ export async function startTelegram(hooks: TgHooks) {
     { command: 'unstuck', description: 'Leave the help queue' },
     { command: 'recap', description: 'Session summary (for the teacher)' },
   ] });
+  botUsername = me.username ?? botUsername;
   console.log(`[telegram] logged in as @${me.username}`);
   let offset = 0;
   for (;;) {
