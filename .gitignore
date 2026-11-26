@@ -8,3 +8,11 @@ data.json
 !.env.example
 !.env.gateway.example
 .DS_Store
+
+# never commit keys, logs or local editor files
+*.pem
+*.key
+*.p12
+*.log
+.vscode/
+.idea/
