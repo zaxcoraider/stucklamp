@@ -25,6 +25,7 @@
 </p>
 
 <p align="center">
+  <a href="#-try-it-now">Try it</a> ·
   <a href="#-in-30-seconds">In 30 seconds</a> ·
   <a href="#-see-it-in-5-minutes">See it</a> ·
   <a href="#-the-problem">The problem</a> ·
@@ -39,6 +40,15 @@
   <img src="docs/screens/same-problem.jpg" alt="Stucklamp's try-it page: a classroom map with seats 12 (Kai) and 15 (Zax) lit up, and the G2 glasses view saying 2 STUCK ON THE SAME THING, missing requests module, fix: python -m pip install requests, tap: post fix to class" width="100%">
   <br><sub>Two students, one on Telegram and one on the web, hit the same error. Claude noticed. One tap on the glasses sends the fix to both.</sub>
 </p>
+
+## 🔗 Try it now
+
+| | What | Link |
+|:---:|---|---|
+| ▶ | **Try it in your browser:** be the students on the left, the teacher wearing G2 on the right | **[3-80-82-140.sslip.io](https://3-80-82-140.sslip.io)** |
+| 💬 | **Telegram bot:** press Start, add it to a group, send `/stuck 14 what is wrong` | **[t.me/stucklamp_bot](https://t.me/stucklamp_bot)** |
+| 👓 | **The teacher's live view** for the Telegram and Discord bots (open it next to Telegram and watch your `/stuck` appear) | **[3-80-82-140.sslip.io/?room=demo](https://3-80-82-140.sslip.io/?room=demo)** |
+| 📦 | **The G2 app** (`stucklamp.ehpk`), to install on real glasses | **[Releases](../../releases)** |
 
 ---
 
@@ -62,7 +72,7 @@
 
 **▶ Try it yourself first (2 minutes, nothing to install):** open **[3-80-82-140.sslip.io](https://3-80-82-140.sslip.io)**. Click a few desks on the left to make students stuck. Then use **Tap / Swipe** on the right, exactly as a teacher would on the glasses.
 
-**1 · The student asks.** In Telegram (or Discord) they type `/stuck`, the seat and what's wrong. They get their place in line right away, then a hint from Claude, then *"a mentor is on the way"* the moment the teacher taps.
+**1 · The student asks.** In Telegram ([@stucklamp_bot](https://t.me/stucklamp_bot)) or Discord they type `/stuck`, the seat and what's wrong. They get their place in line right away, then a hint from Claude, then *"a mentor is on the way"* the moment the teacher taps.
 
 <p align="center"><img src="docs/screens/telegram-student.jpg" alt="Telegram chat with the Stucklamp bot: the student sends /stuck 14 my python import doesn't work; the bot answers you're #1 in line (seat 14), then a hint from Claude with a That fixed it button, then A mentor is on the way to you now" width="80%"></p>
 
