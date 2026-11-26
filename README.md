@@ -9,6 +9,7 @@
 <p align="center">
   <a href="https://3-80-82-140.sslip.io"><img alt="Try it live" src="https://img.shields.io/badge/▶_Try_it_live-no_sign--up-F2B33D?style=for-the-badge&labelColor=1B2238"></a>
   <a href="https://t.me/stucklamp_bot"><img alt="Telegram bot" src="https://img.shields.io/badge/💬_Telegram_bot-@stucklamp__bot-F6F8F4?style=for-the-badge&labelColor=1B2238"></a>
+  <a href="https://discord.com/oauth2/authorize?client_id=1575106449074561116"><img alt="Add to Discord" src="https://img.shields.io/badge/🎮_Discord_bot-add_to_server-F6F8F4?style=for-the-badge&labelColor=1B2238"></a>
   <a href="#-see-it-in-5-minutes"><img alt="See it" src="https://img.shields.io/badge/📸_See_it-5_screens-F6F8F4?style=for-the-badge&labelColor=1B2238"></a>
   <a href="#-proof"><img alt="Proof" src="https://img.shields.io/badge/🧾_Proof-real_class_test-F6F8F4?style=for-the-badge&labelColor=1B2238"></a>
   <!-- Demo video badge goes here before submission -->
@@ -47,6 +48,7 @@
 |:---:|---|---|
 | ▶ | **Try it in your browser:** be the students on the left, the teacher wearing G2 on the right | **[3-80-82-140.sslip.io](https://3-80-82-140.sslip.io)** |
 | 💬 | **Telegram bot:** press Start, add it to a group, send `/stuck 14 what is wrong` | **[t.me/stucklamp_bot](https://t.me/stucklamp_bot)** |
+| 🎮 | **Discord bot:** add it to your server, then type `/stuck` in any channel | **[Add Stucklamp to Discord](https://discord.com/oauth2/authorize?client_id=1575106449074561116)** |
 | 👓 | **The teacher's live view** for the Telegram and Discord bots (open it next to Telegram and watch your `/stuck` appear) | **[3-80-82-140.sslip.io/?room=demo](https://3-80-82-140.sslip.io/?room=demo)** |
 | 📦 | **The G2 app** (`stucklamp.ehpk`), to install on real glasses | **[Releases](../../releases)** |
 
@@ -72,7 +74,7 @@
 
 **▶ Try it yourself first (2 minutes, nothing to install):** open **[3-80-82-140.sslip.io](https://3-80-82-140.sslip.io)**. Click a few desks on the left to make students stuck. Then use **Tap / Swipe** on the right, exactly as a teacher would on the glasses.
 
-**1 · The student asks.** In Telegram ([@stucklamp_bot](https://t.me/stucklamp_bot)) or Discord they type `/stuck`, the seat and what's wrong. They get their place in line right away, then a hint from Claude, then *"a mentor is on the way"* the moment the teacher taps.
+**1 · The student asks.** In Telegram ([@stucklamp_bot](https://t.me/stucklamp_bot)) or Discord ([add the bot](https://discord.com/oauth2/authorize?client_id=1575106449074561116)) they type `/stuck`, the seat and what's wrong. They get their place in line right away, then a hint from Claude, then *"a mentor is on the way"* the moment the teacher taps.
 
 <p align="center"><img src="docs/screens/telegram-student.jpg" alt="Telegram chat with the Stucklamp bot: the student sends /stuck 14 my python import doesn't work; the bot answers you're #1 in line (seat 14), then a hint from Claude with a That fixed it button, then A mentor is on the way to you now" width="80%"></p>
 
