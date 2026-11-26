@@ -14,11 +14,11 @@ const followUps = new Map<string, { i: ChatInputCommandInteraction; at: number }
 const lastSeat = new Map<string, string>();
 
 const commands = [
-  new SlashCommandBuilder().setName('stuck').setDescription('Ask for help. A mentor will come to you.')
+  new SlashCommandBuilder().setName('stuck').setDescription('🙋 Ask for help. A mentor comes to you, Claude hints while you wait.')
     .addStringOption((o) => o.setName('problem').setDescription('What is going wrong? One line is fine.').setRequired(true).setMaxLength(300))
     .addStringOption((o) => o.setName('seat').setDescription('Where are you? Seat number, table or room').setMaxLength(12)),
-  new SlashCommandBuilder().setName('unstuck').setDescription('Remove yourself from the help queue (you figured it out).'),
-  new SlashCommandBuilder().setName('recap').setDescription('Post a summary of this session (for the teacher).'),
+  new SlashCommandBuilder().setName('unstuck').setDescription('✅ I fixed it, take me off the queue.'),
+  new SlashCommandBuilder().setName('recap').setDescription('📋 Class summary and what tripped people up (for the teacher).'),
 ].map((c) => c.toJSON());
 
 export const client = new Client({ intents: [GatewayIntentBits.Guilds] });
