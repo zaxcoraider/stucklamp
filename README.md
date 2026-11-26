@@ -34,6 +34,7 @@
   <a href="#-what-claude-does">Claude</a> ·
   <a href="#-proof">Proof</a> ·
   <a href="#-privacy-and-safety">Privacy</a> ·
+  <a href="#-roadmap">Roadmap</a> ·
   <a href="#-run-it-yourself">Run it</a>
 </p>
 
@@ -306,6 +307,36 @@ evenhub-simulator http://127.0.0.1:5173/
 - **Gateway:** to reach Claude through an Anthropic-compatible gateway (we used DGrid), copy `.env.gateway.example` to `.env.gateway`.
 
 </details>
+
+## 🗺 Roadmap
+
+**✅ Built this week**
+
+- `/stuck`, `/unstuck` and `/recap` in **Discord and Telegram**, plus a web form
+- G2 glasses: next student, "on my way", done, one fix for many
+- Claude: short version for the glasses, hints while waiting, same-problem groups, class insight
+- Voice notes on our own server, two mentors in one room, a public try-it page
+- An eval (precision 1.00) and a first test with real people
+
+**🔜 Next (the month after the hackathon)**
+
+| | Feature | Why |
+|:---:|---|---|
+| 🏫 | **One room per class.** Each Discord server or Telegram group gets its own queue, and the teacher joins with a short code. | Today every server shares one demo room. |
+| 🧑‍🏫 | **Real classes.** Run Stucklamp in 3 coding classes or hackathon help desks and publish the waits, before and after. | The proof that matters most is a real teacher saying it helped. |
+| 📊 | **Teacher history.** Compare sessions: which topics trip each class up, and whether waits are going down. | Turns `/recap` into a plan for next term. |
+| 🌍 | **Hints in the student's language.** Claude answers in the language the student wrote in. | Many classes are multilingual. |
+| 🙈 | **Anonymous mode.** The glasses show only the seat, never the name. | For shy students and stricter schools. |
+
+**🔭 Later**
+
+| | Feature | Why |
+|:---:|---|---|
+| 💼 | **Slack and Microsoft Teams** | Most schools and companies already use one of them. |
+| 🎓 | **Google Classroom, Canvas and Moodle** | Join from the class page; seat and course come along automatically. |
+| ⚡ | **Instant updates instead of checking every 3 seconds** | Needs push support in Even Hub (see the feature requests below). |
+| 🔔 | **A one-line alert while another G2 app is open** | "Seat 14 needs help" even when Stucklamp isn't in front. Also needs Even Hub support. |
+| 🐳 | **One-command self-hosting** (a Docker image) | So a school can run it on its own server and keep student data in-house. |
 
 ## 📅 Built during the hackathon
 
