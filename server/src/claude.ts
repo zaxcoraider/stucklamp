@@ -76,7 +76,8 @@ export async function triage(raw: string): Promise<{ short: string; hint: string
       'short: the concrete problem in at most 38 characters for the teacher\'s smart-glasses display, keeping any error name or tool; no greeting, no name, no trailing period. ' +
       'hint: one nudge the student can try while waiting for the mentor, at most 180 characters, written to the student ("Check whether…", "Try…"). ' +
       'Point them in the right direction instead of giving the whole solution, so they still learn. ' +
-      'If the request is too vague to hint at, ask them for the exact error message instead.',
+      'Nobody reads replies to the hint, so never ask them to send, paste or share anything. ' +
+      'If the request is too vague to hint at, tell them where to find the exact error (e.g. the last line of the traceback) and what it usually means.',
     raw,
   );
   const s = out?.short.trim();

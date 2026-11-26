@@ -11,13 +11,20 @@ export function recapText(r: Room): string {
   const waits = ts.filter((t) => t.helpedAt).map((t) => t.helpedAt! - t.createdAt);
   const avg = waits.length ? waits.reduce((a, b) => a + b, 0) / waits.length : 0;
   const open = ts.filter((t) => t.status === 'waiting' || t.status === 'going');
+  const waiting = open.filter((t) => t.status === 'waiting');
+  const going = open.filter((t) => t.status === 'going');
   const byFix = helped.filter((t) => t.viaFix).length;
   const self = helped.filter((t) => t.selfSolved).length;
   const lines = [
     '📋 **Session recap**',
     `• Asked for help: **${ts.length}**  · solved: **${helped.length}**${byFix ? ` (${byFix} by one class-wide fix)` : ''}${self ? ` · **${self}** fixed it themselves with Claude's hint` : ''}`,
     waits.length ? `• Average wait until a mentor was on the way: **${m(avg)}** (longest ${m(Math.max(...waits))})` : '',
-    open.length ? `• Still waiting: ${open.map((t) => `seat ${t.seat} (${t.problem})`).join(', ')}` : '• Nobody left waiting 🎉',
+    ...(open.length
+      ? [
+          waiting.length ? `• Still waiting: ${waiting.map((t) => `seat ${t.seat} (${t.problem})`).join(', ')}` : '',
+          going.length ? `• Mentor on the way: ${going.map((t) => `seat ${t.seat} (${t.problem})`).join(', ')}` : '',
+        ]
+      : ['• Nobody left waiting 🎉']),
   ];
   const notes = helped.filter((t) => t.note).map((t) => `  – ${t.problem} → ${t.note}`);
   if (notes.length) lines.push('• Mentor notes:', ...notes);
