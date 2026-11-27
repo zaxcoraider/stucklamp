@@ -7,12 +7,16 @@
 <h3 align="center">In a class of thirty, the students who need help most are the ones who never raise a hand.<br>Stucklamp lets them type <code>/stuck</code> in Discord or Telegram, and the teacher sees who to help next<br>on Even Realities G2 glasses, while walking the room and still looking at the students.</h3>
 
 <p align="center">
+  <a href="https://youtu.be/COrmAcOw3nk"><img alt="Watch the demo" src="https://img.shields.io/badge/▶_Watch_the_demo-under_3_min-F2B33D?style=for-the-badge&labelColor=1B2238"></a>
   <a href="https://3-80-82-140.sslip.io"><img alt="Try it live" src="https://img.shields.io/badge/▶_Try_it_live-no_sign--up-F2B33D?style=for-the-badge&labelColor=1B2238"></a>
   <a href="https://t.me/stucklamp_bot"><img alt="Telegram bot" src="https://img.shields.io/badge/💬_Telegram_bot-@stucklamp__bot-F6F8F4?style=for-the-badge&labelColor=1B2238"></a>
   <a href="https://discord.com/oauth2/authorize?client_id=1575106449074561116"><img alt="Add to Discord" src="https://img.shields.io/badge/🎮_Discord_bot-add_to_server-F6F8F4?style=for-the-badge&labelColor=1B2238"></a>
   <a href="#-see-it-in-5-minutes"><img alt="See it" src="https://img.shields.io/badge/📸_See_it-5_screens-F6F8F4?style=for-the-badge&labelColor=1B2238"></a>
   <a href="#-proof"><img alt="Proof" src="https://img.shields.io/badge/🧾_Proof-real_class_test-F6F8F4?style=for-the-badge&labelColor=1B2238"></a>
-  <!-- Demo video badge goes here before submission -->
+</p>
+
+<p align="center">
+  <a href="https://youtu.be/COrmAcOw3nk"><img src="docs/demo-video.png" alt="Watch the Stucklamp demo video on YouTube" width="720"></a>
 </p>
 
 <p align="center">
