@@ -16,10 +16,6 @@
 </p>
 
 <p align="center">
-  <a href="https://youtu.be/COrmAcOw3nk"><img src="docs/demo-video.png" alt="Watch the Stucklamp demo video on YouTube" width="720"></a>
-</p>
-
-<p align="center">
   <img alt="Even Realities G2" src="https://img.shields.io/badge/Even_Realities-G2-F6F8F4?style=flat-square&labelColor=1B2238">
   <img alt="Track 01: Discord + Telegram" src="https://img.shields.io/badge/Track_01-Discord_%2B_Telegram-F2B33D?style=flat-square&labelColor=1B2238">
   <img alt="Claude Opus 5.5" src="https://img.shields.io/badge/Claude-Opus_5.5-F6F8F4?style=flat-square&labelColor=1B2238">
